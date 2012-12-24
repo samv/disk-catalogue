@@ -29,5 +29,6 @@ create table filenames (
     inode_num int not null,
     foreign key (volume_id, inode_num) references inodes (volume_id, inode_num),
     filename text not null,
+    filename_raw bytea,
     primary key (volume_id, inode_num, filename)
 );

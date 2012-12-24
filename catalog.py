@@ -1,6 +1,7 @@
 
 import argparse
 from datetime import datetime
+from fix_unicode import fix_bad_unicode
 import re
 import sys
 import os
@@ -195,18 +196,34 @@ class CatalogueFS(object):
         return fobj, inc
 
     def get_filename(self, fobj, relname):
+        """Returns a Filename object, given the Inode object and the filesystem
+        relative name."""
+        try:
+            relname_utf8 = relname.decode("utf8")
+        except UnicodeDecodeError:
+            latin1 = relname.decode("latin1")
+            relname_utf8 = fix_bad_unicode(latin1)
+            print u"Tidied {rn} to '{new}'".format(
+                rn=repr(relname),
+                new=relname_utf8,
+            )
+        relname_bin = None
+        if relname_utf8.encode("utf8") != relname:
+            relname_bin = relname
         try:
             fnobj = sesh.query(Filename).filter(
                 Filename.volume_id == fobj.volume_id,
                 Filename.inode_num == fobj.inode_num,
-                Filename.filename == relname,
+                Filename.filename == relname_utf8,
             ).one()
             #TODO: check other names & remove if necc.
+            #FIXME: multiple links to same file differing only by unicode!
         except NoResultFound:
             fnobj = Filename(
                 volume_id=fobj.volume_id,
                 inode_num=fobj.inode_num,
-                filename=relname
+                filename=relname_utf8,
+                filename_raw=relname_bin,
             )
             sesh.add(fnobj)
         return fnobj
