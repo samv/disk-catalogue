@@ -257,11 +257,14 @@ class CatalogueFS(object):
             )
 
         for dirpath, dirnames, filenames in os.walk(mount):
-            reldir = os.path.relpath(dirpath, mount)
+            reldir = os.path.relpath(dirpath, mi.path)
             for filename in filenames:
                 stat = os.lstat(os.path.join(dirpath, filename))
                 fobj, inc = self.get_file(mi, stat)
-                relfile = os.path.join(reldir, filename)
+                relfile = (
+                    os.path.join(reldir, filename) if reldir != "." else
+                    filename
+                )
                 fnobj = self.get_filename(fobj, relfile)
                 scanned += 1
                 new += inc
