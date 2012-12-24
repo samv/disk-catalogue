@@ -1,7 +1,6 @@
 
 create table volumes (
     id uuid not null,
-    label text,
     last_mount text,
     primary key (id)
 );
@@ -9,7 +8,7 @@ create table volumes (
 create table inodes (
     volume_id uuid not null references volumes (id),
     inode_num int not null,
-    unix_mode int2 not null,
+    unix_mode int4 not null,
     nlink int2 not null,
     uid int not null,
     gid int not null,
