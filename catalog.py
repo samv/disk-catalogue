@@ -54,7 +54,14 @@ class CatalogueFS(object):
             if m:
                 device, mount_point = m.group(1), m.group(2)
                 fstype = m.group(3) or m.group(4)
-                device_num = os.stat(mount_point).st_dev
+                try:
+                    device_num = os.stat(mount_point).st_dev
+                except OSError, e:
+                    print "Warning: failed to stat {mp}: {e}".format(
+                        mp=mount_point,
+                        e=e,
+                    )
+                    next
                 if device_num not in self.mi:
                     mi = self.mi[device_num] = MountInfo()
                     mi.device = device
@@ -62,10 +69,10 @@ class CatalogueFS(object):
                     mi.fstype = fstype
                 else:
                     print(
-                        "Device {dev} mounted at {path} and {path2}, "
-                        "and that's BAD :-)".format(
+                        "Warning: device {dev} mounted at {path} and "
+                        "{path2}, hopefully that's OK".format(
                             dev=device,
-                            path=mount_mount,
+                            path=mount_point,
                             path2=mi.path
                         )
                     )
