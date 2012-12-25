@@ -25,7 +25,6 @@ class MountInfo(object):
 class CatalogueFS(object):
     def __init__(self):
         self.mount_point = []
-        self.v = False
         self.parse_fail = 0
         self.read_mounts()
 
@@ -260,10 +259,6 @@ parser = argparse.ArgumentParser(description="catalog a filesystem")
 parser.add_argument(
     'mount_point', metavar="PATH", type=str, nargs="+",
     help="the mounted root of the filesystem to scan"
-)
-parser.add_argument(
-    "-v", "--verbose",
-    help="show directories being added etc",
 )
 
 

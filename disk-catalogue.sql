@@ -18,9 +18,6 @@ create table inodes (
     atime timestamptz,
     mtime timestamptz,
     ctime timestamptz,
-    md5 text,
-    sha1 text,
-    gitsha1 text,
     primary key (volume_id, inode_num)
 );
 
