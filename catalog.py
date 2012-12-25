@@ -164,7 +164,7 @@ class CatalogueFS(object):
                 mtime=datetime.utcfromtimestamp(stat.st_mtime),
                 atime=datetime.utcfromtimestamp(stat.st_atime),
                 ctime=datetime.utcfromtimestamp(stat.st_ctime),
-                alloc=(stat.st_blocks * mi.vfss.f_bsize),
+                alloc=(stat.st_blocks * mi.vfss.f_bsize / 8),
                 rdev=stat.st_rdev,
                 uid=stat.st_uid,
                 gid=stat.st_gid,
