@@ -33,3 +33,17 @@ class Filename(Base):
     )
 
 
+class Content(Base):
+    __table__ = Table(
+        'content', Base.metadata,
+        autoload=True,
+        autoload_with=engine,
+    )
+
+
+class ContentInfo(Base):
+    __table__ = Table(
+        'content_info', Base.metadata,
+        autoload=True,
+        autoload_with=engine,
+    )
