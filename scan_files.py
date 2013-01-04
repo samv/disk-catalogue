@@ -25,6 +25,7 @@ class ScanFiles(object):
         self.min = 20
         self.max = 2 * (2 ** 20)
         self.max_errors = 3
+        self.scan_limit = float("inf")
         self.sesh = dealer()
 
     def ready(self):
@@ -74,14 +75,14 @@ class ScanFiles(object):
             info.append("under {prefix}".format(prefix=prefix))
 
         if self.min != 0 or self.max != 0:
-            if self.min != 0:
+            if int(self.min) != 0:
                 scan_expr &= (Inode.size >= self.min)
                 info.append(
                     "larger than {minsize} bytes".format(
                         minsize=self.min,
                     )
                 )
-            if self.max != 0:
+            if int(self.max) != 0:
                 scan_expr &= (Inode.size <= self.max)
                 info.append(
                     "smaller than {maxsize} bytes".format(
