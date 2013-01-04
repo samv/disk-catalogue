@@ -127,7 +127,7 @@ class ScanFiles(object):
             added=added,
             e=errors,
         )
-        sesh.commit()
+        self.sesh.commit()
 
     def scan_file(self, vol, inode, filename):
         # find inode
