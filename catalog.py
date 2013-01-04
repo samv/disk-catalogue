@@ -4,7 +4,7 @@ from datetime import datetime
 from disk_catalogue import (
     Filename,
     Inode,
-    sesh,
+    dealer,
     Volume,
 )
 from fix_unicode import fix_bad_unicode
@@ -27,6 +27,7 @@ class CatalogueFS(object):
         self.mount_point = []
         self.parse_fail = 0
         self.read_mounts()
+        self.sesh = dealer()
 
     def ready(self):
         if len(self.mount_point) == 0:
@@ -137,18 +138,18 @@ class CatalogueFS(object):
 
     def get_volume(self, mi):
         try:
-            volume = sesh.query(Volume).filter(Volume.id == mi.uuid).one()
+            volume = self.sesh.query(Volume).filter(Volume.id == mi.uuid).one()
             volume.last_mount = mi.path
         except NoResultFound, e:
             volume = Volume(id=mi.uuid, last_mount=mi.path)
-            sesh.add(volume)
-        sesh.commit()
+            self.sesh.add(volume)
+        self.sesh.commit()
         return volume
 
     def get_file(self, mi, stat):
         inc = 0
         try:
-            fobj = sesh.query(Inode).filter(
+            fobj = self.sesh.query(Inode).filter(
                 Inode.volume_id == mi.uuid,
                 Inode.inode_num == stat.st_ino,
             ).one()
@@ -169,7 +170,7 @@ class CatalogueFS(object):
                 gid=stat.st_gid,
                 nlink=stat.st_nlink,
             ) 
-            sesh.add(fobj)
+            self.sesh.add(fobj)
             inc += 1
         return fobj, inc
 
@@ -189,7 +190,7 @@ class CatalogueFS(object):
         if relname_utf8.encode("utf8") != relname:
             relname_bin = relname
         try:
-            fnobj = sesh.query(Filename).filter(
+            fnobj = self.sesh.query(Filename).filter(
                 Filename.volume_id == fobj.volume_id,
                 Filename.inode_num == fobj.inode_num,
                 Filename.filename == relname_utf8,
@@ -203,19 +204,19 @@ class CatalogueFS(object):
                 filename=relname_utf8,
                 filename_raw=relname_bin,
             )
-            sesh.add(fnobj)
+            self.sesh.add(fnobj)
         return fnobj
 
     def catalogue_one(self, mount):
         mi = self.mount_info(mount)
         volume = self.get_volume(mi)
         print "Checking database: ",
-        have_files = sesh.query(Inode).filter(
+        have_files = self.sesh.query(Inode).filter(
             Inode.volume_id == volume.id
         ).count()
         print "{0} file(s),".format(have_files),
         try:
-            have_size = sesh.query(
+            have_size = self.sesh.query(
                 func.sum(Inode.alloc),
             ).filter(
                 Inode.volume_id == volume.id
@@ -250,9 +251,9 @@ class CatalogueFS(object):
                     have_size += mi.vfss.f_bsize * stat.st_blocks
                 if scanned % 1000 == 0:
                     show_progress()
-                    sesh.commit()
+                    self.sesh.commit()
         show_progress()
-        sesh.commit()
+        self.sesh.commit()
 
 
 parser = argparse.ArgumentParser(description="catalog a filesystem")

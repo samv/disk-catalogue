@@ -2,11 +2,11 @@
 import argparse
 from datetime import datetime
 from disk_catalogue import (
+    dealer,
     Content,
     ContentInfo,
     Filename,
     Inode,
-    sesh,
     Volume,
 )
 import hashlib
@@ -25,6 +25,7 @@ class ScanFiles(object):
         self.min = 20
         self.max = 2 * (2 ** 20)
         self.max_errors = 3
+        self.sesh = dealer()
 
     def ready(self):
         return len(self.paths) > 0
@@ -40,7 +41,7 @@ class ScanFiles(object):
         mount_path = path
         while mount_path != "/":
             try:
-                volume = sesh.query(Volume).filter(
+                volume = self.sesh.query(Volume).filter(
                     Volume.last_mount == mount_path
                 ).one()
                 return volume
@@ -53,7 +54,7 @@ class ScanFiles(object):
 
     def scan_one(self, path):
         vol = self.get_volume(path)
-        query = sesh.query(Inode, Filename).filter(
+        query = self.sesh.query(Inode, Filename).filter(
             # FIXME: this seems a little wrong :)
             Inode.volume_id == Filename.volume_id,
             Inode.inode_num == Filename.inode_num,
@@ -115,7 +116,7 @@ class ScanFiles(object):
                     else:
                         added += 1
                     if errors > self.max_errors:
-                        sesh.commit()
+                        self.sesh.commit()
                         raise Exception("too many errors, exiting")
                     if added >= self.scan_limit:
                         break
@@ -198,9 +199,9 @@ class ScanFiles(object):
             ctime=datetime.utcfromtimestamp(stat.st_ctime),
             sha1=sha1sum,
         )
-        sesh.add(content)
+        self.sesh.add(content)
         try:
-            content_info = sesh.query(ContentInfo).filter(
+            content_info = self.sesh.query(ContentInfo).filter(
                 ContentInfo.sha1 == sha1sum
             ).one()
         except NoResultFound:
@@ -211,7 +212,7 @@ class ScanFiles(object):
                 magic_info=magic.from_buffer(first_block),
                 mime_type=magic.from_buffer(first_block, mime=True),
             )
-            sesh.add(content_info)
+            self.sesh.add(content_info)
         print u"{sz}k inum {num}: {sha} {mime} {fn}".format(
             sz=inode.alloc / 1024,
             num=stat.st_ino,
