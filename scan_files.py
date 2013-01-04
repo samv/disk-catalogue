@@ -132,10 +132,13 @@ class ScanFiles(object):
 
     def scan_file(self, vol, inode, filename):
         # find inode
-        fn = os.path.join(
-            vol.last_mount,
-            filename.filename_raw or filename.filename,
-        )
+        if filename.filename_raw is not None:
+            fn = os.path.join(
+                vol.last_mount.encode("utf8"),
+                filename.filename_raw
+            )
+        else:
+            fn = os.path.join(vol.last_mount, filename.filename)
         stat = os.stat(fn)
         errs = []
         if not stat:
