@@ -238,7 +238,14 @@ class CatalogueFS(object):
         for dirpath, dirnames, filenames in os.walk(mount):
             reldir = os.path.relpath(dirpath, mi.path)
             for filename in filenames:
-                stat = os.lstat(os.path.join(dirpath, filename))
+                try:
+                    stat = os.lstat(os.path.join(dirpath, filename))
+                except OSError, e:
+                    print "Failed to stat {fn}: {e}".format(
+                        fn=filename,
+                        e=e,
+                    )
+                    next
                 fobj, inc = self.get_file(mi, stat)
                 relfile = (
                     os.path.join(reldir, filename) if reldir != "." else
