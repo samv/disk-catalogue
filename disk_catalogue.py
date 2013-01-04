@@ -1,12 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import Table
 
 Base = declarative_base()
 engine = create_engine('postgresql+psycopg2:///disk-catalogue')
 dealer = sessionmaker(bind=engine)
-sesh = dealer()
+scoped_dealer = scoped_session(sessionmaker(bind=engine))
 
 
 class Volume(Base):
